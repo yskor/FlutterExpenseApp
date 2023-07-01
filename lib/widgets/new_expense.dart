@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_expense_app/models/expense.dart';
 
 class NewExpense extends StatefulWidget {
@@ -77,88 +78,126 @@ class _NewExpense extends State<NewExpense> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
-      child: Column(
-        children: [
-          TextField(
-            controller: _titleController,
-            maxLength: 50,
-            decoration: const InputDecoration(
-              label: Text('タイトル'),
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    prefixText: '\$',
-                    label: Text('金額'),
+    final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
+    return LayoutBuilder(builder: (ctx, constraints) {
+      final width = constraints.maxWidth;
+
+      return SizedBox(
+        height: double.infinity,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16, 48, 16, keyboardSpace + 16),
+            child: Column(
+              children: [
+                if (width >= 600)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _titleController,
+                          maxLength: 50,
+                          decoration: const InputDecoration(
+                            label: Text('タイトル'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 24,
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            prefixText: '\$',
+                            label: Text('金額'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  TextField(
+                    controller: _titleController,
+                    maxLength: 50,
+                    decoration: const InputDecoration(
+                      label: Text('タイトル'),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(
-                width: 16,
-              ),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Row(
                   children: [
-                    Text(_selectedDate == null
-                        ? '日付選択'
-                        : formatter.format(_selectedDate!)),
-                    IconButton(
-                      onPressed: _presentDatePicker,
-                      icon: const Icon(
-                        Icons.calendar_month,
+                    Expanded(
+                      child: TextField(
+                        controller: _amountController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          prefixText: '\$',
+                          label: Text('金額'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(_selectedDate == null
+                              ? '日付選択'
+                              : formatter.format(_selectedDate!)),
+                          IconButton(
+                            onPressed: _presentDatePicker,
+                            icon: const Icon(
+                              Icons.calendar_month,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                Row(
+                  children: [
+                    DropdownButton(
+                      value: _selectedCategory,
+                      items: Category.values
+                          .map(
+                            (category) => DropdownMenuItem(
+                              value: category,
+                              child: Text(
+                                category.name.toUpperCase(),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value == null) {
+                          return;
+                        }
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      },
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('キャンセル'),
+                    ),
+                    ElevatedButton(
+                      onPressed: _submitExpenseData,
+                      child: const Text('追加'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          Row(
-            children: [
-              DropdownButton(
-                value: _selectedCategory,
-                items: Category.values
-                    .map(
-                      (category) => DropdownMenuItem(
-                        value: category,
-                        child: Text(
-                          category.name.toUpperCase(),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) {
-                    return;
-                  }
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                },
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('キャンセル'),
-              ),
-              ElevatedButton(
-                onPressed: _submitExpenseData,
-                child: const Text('追加'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 }
